@@ -1,19 +1,18 @@
 '''
-Soft Body Simulation
+Soft Body Module
 Created on Sep 5, 2014
 
 @author: himbiss
-
-Controls:
-A      -  Show/Hide Springs
-SPACE  -  Perform 'Jump'
-LM     -  Drag the balls towards the mouse location
-RM     -  Spawn a new ball
-ESC    -  Exit
 '''
 
-import pygame, sys, math
-from pygame.locals import *
+
+import math, pygame
+
+redColor = pygame.Color(255, 0, 0)
+greenColor = pygame.Color(0, 255, 0)
+blueColor = pygame.Color(0, 0, 255)
+yellowColor = pygame.Color(255,255,0)
+whiteColor = pygame.Color(255, 255, 255)
 
 NUMP = 10       # number of mass points
 BALLRADIUS = 80 # ballradius
@@ -21,9 +20,6 @@ SCRSIZEX, SCRSIZEY = 640,480   # screen size
 GY = 9.81       # gravity
 Pressure = 10   # pressure
 DT = .1         # delta time
-JUMPSPEED = -180
-SHOWSPRINGS = False # show springs?
-MOUSEDOWN = False
 
 class CPoint2d(object):
 
@@ -80,7 +76,7 @@ class Object(object):
             minP = (min(minP[0],p.x),min(minP[1],p.y))
             maxP = (max(maxP[0],p.x),max(maxP[1],p.y))
         dim = (maxP[0]-minP[0],maxP[1]-minP[1])
-        return Rect(minP,dim)
+        return pygame.Rect(minP,dim)
     
     # render boundingbox
     def renderBoundingBox(self,surfaceObj):
@@ -225,93 +221,4 @@ class Ball(DeformableObject):
             points.append(p)
         super(Ball,self).__init__(points,1,3,4,.5)
     
-        
-
-
-pygame.init()
-
-fpsClock = pygame.time.Clock()
-
-windowSurfaceObj = pygame.display.set_mode((SCRSIZEX,SCRSIZEY))
-pygame.display.set_caption('Soft Body Simulation')
-
-redColor = pygame.Color(255, 0, 0)
-greenColor = pygame.Color(0, 255, 0)
-blueColor = pygame.Color(0, 0, 255)
-yellowColor = pygame.Color(255,255,0)
-whiteColor = pygame.Color(255, 255, 255)
-mousex, mousey = 0, 0
-
-fontObj = pygame.font.Font('freesansbold.ttf', 16)
-msg = 'Soft Body Test'
-
-balls = []
-
-while True:
-    windowSurfaceObj.fill(whiteColor)
-
-    if MOUSEDOWN:
-        for ball in balls:
-                    ptA = ball.myPoints[1]
-                    ptB = ball.myPoints[0]
-                    ptC = ball.myPoints[2]
-                    dx = mousex-ptA.x
-                    dy = mousey-ptA.y
-                    ptA.vx,ptA.vy =  dx,dy
-                    ptB.vy,ptC.vy,ptB.vx,ptC.vx = dy/2,dy/2,dx/2,dx/2
-    # Draw an arc as part of an ellipse. 
-    # Use radians to determine what angle to draw.
-    pi = math.pi
-    for ball in balls:    
-        # update physics
-        ball.updatePhysics()
-        
-        ball.renderPoly(windowSurfaceObj)
-        if SHOWSPRINGS:
-            ball.renderSprings(windowSurfaceObj)
-        ball.renderBoundingBox(windowSurfaceObj)    
-        
-        # draw centroid
-        pygame.draw.circle(windowSurfaceObj, blueColor, ball.calcCentroid(), 5, 3)
-   
-    msg = 'Rendering '+str(len(balls))+' Objects' 
-    # draw message
-    msgSurfaceObj = fontObj.render(msg, False, blueColor)
-    msgRectobj = msgSurfaceObj.get_rect()
-    msgRectobj.topleft = (10, 20)
-    windowSurfaceObj.blit(msgSurfaceObj, msgRectobj)
-   
-    
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == MOUSEMOTION:
-            mousex, mousey = event.pos
-        elif event.type == MOUSEBUTTONUP:
-            mousex, mousey = event.pos
-            if event.button == 3: # left mouse click
-                balls.append(Ball(mousex, mousey, NUMP))
-            if event.button == 1: # right mouse click
-                MOUSEDOWN = False
-        elif event.type == MOUSEBUTTONDOWN:
-            mousex, mousey = event.pos
-            if event.button == 1: # right mouse click
-                MOUSEDOWN = True
-        elif event.type == KEYDOWN:
-            if event.key == K_LEFT:
-                XDIR = int(-1)
-            if event.key == K_RIGHT:
-                XDIR = int(1)
-            if event.key == K_SPACE:
-                for ball in balls:
-                    for p in ball.myPoints:
-                        p.vy += JUMPSPEED
-            if event.key == K_a:
-                SHOWSPRINGS = not SHOWSPRINGS
-                XDIR = int(0)
-            if event.key == K_ESCAPE:
-                pygame.event.post(pygame.event.Event(QUIT))
-        
-    pygame.display.update()
-    fpsClock.tick(30)
+  
